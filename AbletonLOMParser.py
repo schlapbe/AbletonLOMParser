@@ -1,0 +1,170 @@
+# xml Parser for Abetlon's Live Object Model
+# to export it to OPML and possible other formats
+
+import xml.etree.ElementTree as Element_Tree
+import os
+
+
+# from opml import OpmlDocument
+
+
+class TreeNode:
+    def __init__(self, data):
+        self.data = data
+        self.children = []
+
+
+class AbletonLOM:
+    def __init__(self):
+        self.is_imported_from_xml = False
+        self.sorted = False
+        self.elements = []
+        self.tags = []
+        self.root = None
+        self.skip_tag = "Doc"
+        self.group_tags = ["Method", "Value", "Property", "listener Method"]
+
+    @staticmethod
+    def parse_path(text):
+        return text.split(".")
+
+    def import_from_xml_tree(self, xml_tree):
+        self.root = xml_tree.getroot()
+        self.get_tags()
+        ref = 0
+        for i in range(0, len(self.root)):
+            name = self.root[i].text
+            description = self.get_doc(self.root, i)
+            if description is not None:
+                description = description.replace("\t", '')
+                description = description.replace('"', '&quot;')
+            path = self.parse_path(name)
+            tag = self.root[i].tag
+            if path[-1].endswith("listener()"):
+                listener_method = True
+                tag = "listener Method"
+            else:
+                listener_method = False
+            if tag in self.group_tags:
+                group = tag
+            else:
+                group = None
+            e_dic = {"ref": ref, "tag": tag, "name": name, "description": description, "path": path,
+                     "hirachy": len(path) - 1, "ref_parent": None, "children": [], "group": group}
+            if tag != self.skip_tag:
+                self.elements.append(e_dic)
+                ref += 1
+        self.is_imported_from_xml = True
+
+    @staticmethod
+    def get_doc(root, pos):
+        try:
+            if root[pos + 1].tag == "Doc":
+                return root[pos + 1].text
+            else:
+                return None
+        except:
+            return None
+
+    def get_tags(self):
+        self.tags = []
+        for element in self.root:
+            if element.tag not in self.tags:
+                self.tags.append(element.tag)
+
+    def clean_up_description(self):
+        # this func will clean desription from tabs,
+        # and split up the syntax and C++ signature etc
+        pass
+
+    def get_parent_references(self):
+        ref_pointer = None
+        for element in self.elements:
+            if len(element['path']) > 1:
+                try:
+                    parent_path = element['path'][0:-1]
+                    res = list(filter(lambda search: search['path'] == parent_path, self.elements))[0]
+                    if res is not None:
+                        element["ref_parent"] = res['ref']
+                except Exception as e:
+                    print(f'Error: {e}, element: {element}')
+
+    def get_children_references(self):
+        ref_pointer = None
+        for element in self.elements:
+            ref = element['ref']
+            for child in self.elements:
+                if child['ref_parent'] == ref:
+                    element['children'].append(child['ref'])
+        pass
+
+    def get_classes(self):
+        class_list = []
+        return list(filter(lambda s_class: s_class['tag'] == 'Class', self.elements))
+
+    def get_class_with_methods(self, class_dic):
+        ref = class_dic['ref']
+        return list(filter(lambda elements: elements['ref_parent'] == ref, self.elements))
+
+    def get_children(self, parent_dic):
+        children_ref = parent_dic['children']
+        children_list = []
+        for i in range(0, len(children_ref)):
+            children_list.append(self.elements[children_ref[i]])
+        return children_list
+
+    def rec_get_all_children(self, parent_id, pr_children, level=0):
+        children = self.elements[parent_id]['children']
+        if children == []:
+            return children
+        else:
+            for child in children:
+                if child['ref'] not in self.parsed_children:
+                    self.parsed_children.append(child['ref'])
+            pass
+
+    def print_dic(self):
+        new_dic = []
+        for element in self.elements:
+            dic = {'ref': element['ref'], 'children': element['children']}
+            new_dic.append(dic)
+        return new_dic
+
+    # def build_tree(self, opml):
+    #     self.tree = []
+    #     self.parsed_children = []
+
+    def print_children_to_file(self, filename):
+        new_dic = self.print_dic()
+        with open(filename, 'w') as f:
+            f.write(f'dic={str(self.elements)}')
+        return self.elements
+
+    def build_tree_recursive(self, elements, parent_id=None, level=0, max_depth=5):
+        if level > max_depth:
+            return None
+        tree_nodes = []
+        for element in elements:
+            if element["ref_parent"] == parent_id:
+                node = TreeNode(element)
+                children = self.build_tree_recursive(elements, parent_id=element["ref"], level=level + 1, max_depth=max_depth)
+                if children:
+                    node.children.extend(children)
+                tree_nodes.append(node)
+        return tree_nodes
+
+
+
+def main():
+    with open('Live11.xml') as file:
+        tree = Element_Tree.parse(file)
+    LOM = AbletonLOM()
+    LOM.import_from_xml_tree(tree)
+    LOM.get_parent_references()
+    LOM.get_children_references()
+    dic = LOM.print_children_to_file('elements.py')
+    # tree_nodes = LOM.build_tree_recursive(LOM.elements)
+
+
+if __name__ == "__main__":
+    main()
