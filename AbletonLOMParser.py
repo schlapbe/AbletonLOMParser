@@ -1,8 +1,9 @@
-# xml Parser for Abetlon's Live Object Model
+# xml Parser for Ableton's Live Object Model
 # to export it to OPML and possible other formats
 
 import xml.etree.ElementTree as Element_Tree
 import os
+
 # from opml import OpmlDocument
 
 group_tags = ["Method", "Value", "Property", "listener Method"]
@@ -24,6 +25,7 @@ class AbletonLOM:
         self.root = None
         self.skip_tag = "Doc"
         self.group_tags = ["Method", "Value", "Property", "listener Method"]
+        self.listenermethods = ['add_', 'remove_', "_has_listener"]
 
     @staticmethod
     def parse_path(text):
@@ -51,7 +53,7 @@ class AbletonLOM:
             else:
                 group = None
             e_dic = {"ref": ref, "tag": tag, "name": name, "description": description, "path": path,
-                     "hirachy": len(path) - 1, "ref_parent": None, "children": [], "group": group}
+                     "hierarchy": len(path) - 1, "ref_parent": None, "children": [], "group": group}
             if tag != self.skip_tag:
                 self.elements.append(e_dic)
                 ref += 1
@@ -74,12 +76,11 @@ class AbletonLOM:
                 self.tags.append(element.tag)
 
     def clean_up_description(self):
-        # this func will clean desription from tabs,
+        # this func will clean description from tabs,
         # and split up the syntax and C++ signature etc
         pass
 
     def get_parent_references(self):
-        ref_pointer = None
         for element in self.elements:
             if len(element['path']) > 1:
                 try:
@@ -91,16 +92,13 @@ class AbletonLOM:
                     print(f'Error: {e}, element: {element}')
 
     def get_children_references(self):
-        ref_pointer = None
         for element in self.elements:
             ref = element['ref']
             for child in self.elements:
                 if child['ref_parent'] == ref:
                     element['children'].append(child['ref'])
-        pass
 
     def get_classes(self):
-        class_list = []
         return list(filter(lambda s_class: s_class['tag'] == 'Class', self.elements))
 
     def get_class_with_methods(self, class_dic):
@@ -116,7 +114,7 @@ class AbletonLOM:
 
     def rec_get_all_children(self, parent_id, pr_children, level=0):
         children = self.elements[parent_id]['children']
-        if children == []:
+        if children is []:
             return children
         else:
             for child in children:
@@ -136,29 +134,10 @@ class AbletonLOM:
     #     self.parsed_children = []
 
     def print_children_to_file(self, filename):
-        new_dic = self.print_dic()
+        # new_dic = self.print_dic()
         with open(filename, 'w') as f:
             f.write(f'dic={str(self.elements)}')
         return self.elements
-
-    def build_tree_recursive(self, elements, parent_id=None, level=0, max_depth=5):
-        if level > max_depth:
-            return None
-        tree_nodes = []
-        for element in elements:
-            if element["ref_parent"] == parent_id:
-                node = TreeNode(element)
-                children = self.build_tree_recursive(elements, parent_id=element["ref"], level=level + 1, max_depth=max_depth)
-                if children:
-                    node.children.extend(children)
-                tree_nodes.append(node)
-        return tree_nodes
-
-
-class TreeNode:
-    def __init__(self, data):
-        self.data = data
-        self.children = []
 
 
 def build_tree_recursive_with_groups_as_children(elements, parent_id=None, level=0, max_depth=6):
@@ -169,8 +148,7 @@ def build_tree_recursive_with_groups_as_children(elements, parent_id=None, level
     for element in elements:
         if element["ref_parent"] == parent_id:
             node = TreeNode(element)
-            children = build_tree_recursive_with_groups_as_children(elements, parent_id=element["ref"], level=level + 1,
-                                                                    max_depth=max_depth)
+            children = build_tree_recursive_with_groups_as_children(elements, parent_id=element["ref"], level=level + 1, max_depth=max_depth)
             if children:
                 node.children.extend(children)
 
@@ -230,17 +208,18 @@ def export_to_opml(tree_nodes, file_path):
 
 
 def main():
-    filename = "Live11"
-    with open(filename+'.xml') as file:
+    filename = "./examples/Live11"
+    if filename.endswith(".xml"):
+        filename = filename[1:-4]
+    with open(filename + '.xml') as file:
         tree = Element_Tree.parse(file)
-    LOM = AbletonLOM()
-    LOM.import_from_xml_tree(tree)
-    LOM.get_parent_references()
-    LOM.get_children_references()
-    dic = LOM.print_children_to_file(filename+'.py')
+    lom = AbletonLOM()
+    lom.import_from_xml_tree(tree)
+    lom.get_parent_references()
+    lom.get_children_references()
+    dic = lom.print_children_to_file(filename + '.py')
     tree_nodes = build_tree_recursive_with_groups_as_children(dic)
-    export_to_opml(tree_nodes, filename+".opml")
-    # tree_nodes = LOM.build_tree_recursive(LOM.elements)
+    export_to_opml(tree_nodes, filename + ".opml")
 
 
 if __name__ == "__main__":
