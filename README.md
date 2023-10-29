@@ -29,7 +29,7 @@ I used the library xml.etree.ElementTree to import the data into one list.
 
 **Data Structure**
 Objects (or Modules) have Children, Methods, Properties, Sub-Classes, Listeners.
-I used keywords, tags to break the elements into the different pieces, regarding reference, type of object, path and description and stored them into a dictionary.
+I used keywords, tags to break the elements into the different pieces, regarding type of object, path and description and stored them into a dictionary with a unique id as a reference.
 
 The hierachy of the xml files is flat though.
 e.g. 
@@ -38,23 +38,17 @@ Live.Chain.ChainClass
 Live.Chain.Chain.name
 Live.Chain.Chain.solo
 
-What I wanted is to build a tree structure with correct references:
+What I wanted is to build a tree structure with correct relationships:
 
-LIVE
-├── ChainModule
-│   ├── ChainClass
-│   │   ├─Chain
-│   │   │   ├── name
-│   │   │   ├── solo
-├── ChainMixerDevice
-│   ├── etc....
-│   │   ├── etc...│   
+![](tree_struct.png)
 
 ### 2) Referencing and building a tree structure
-I then searched each element and referenced in both directions parent and children, so it is possible to climb between branchen up and down.
+I then searched each element and referenced in both directions parent and children, so it is possible to climb between branches up and down.
 
-I then wrote methods to get the children of each
+I then wrote methods to get the children of each element and write those reference_ids into the list of children in the dictionary.
 
-3) write the opml file
+To then build the tree structure I used 
+
+## 3) write the opml file
 
 

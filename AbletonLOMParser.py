@@ -26,6 +26,7 @@ class AbletonLOM:
         self.skip_tag = "Doc"
         self.group_tags = ["Method", "Value", "Property", "listener Method"]
         self.listenermethods = ['add_', 'remove_', "_has_listener"]
+        self.parsed_children = None
 
     @staticmethod
     def parse_path(text):
@@ -66,7 +67,8 @@ class AbletonLOM:
                 return root[pos + 1].text
             else:
                 return None
-        except:
+        except Exception as e:
+            print(f"{e} has occurred")
             return None
 
     def get_tags(self):
