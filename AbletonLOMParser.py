@@ -8,6 +8,7 @@ import os
 
 group_tags = ["Method", "Value", "Property", "listener Method"]
 group_names = ["Methods", "Values", "Properties", "Listeners"]
+listener_groups = ["add", "remove", "has"]
 
 
 class TreeNode:
@@ -63,12 +64,13 @@ class AbletonLOM:
     @staticmethod
     def get_doc(root, pos):
         try:
-            if root[pos + 1].tag == "Doc":
-                return root[pos + 1].text
-            else:
-                return None
+            if len(root)-1 > pos:
+                if root[pos + 1].tag == "Doc":
+                    return root[pos + 1].text
+                else:
+                    return None
         except Exception as e:
-            print(f"{e} has occurred")
+            print(f"{e} has occurred, pos:{pos}, length of root: {len(root)}")
             return None
 
     def get_tags(self):
@@ -135,10 +137,18 @@ class AbletonLOM:
     #     self.tree = []
     #     self.parsed_children = []
 
-    def print_children_to_file(self, filename):
+    def print_children_to_file(self, filename, print_txt=True):
         # new_dic = self.print_dic()
-        with open(filename, 'w') as f:
+        with open(filename + ".py", 'w') as f:
             f.write(f'dic={str(self.elements)}')
+        if print_txt:
+            with open(filename + "_testdiic.py", 'w') as f:
+                f.write(f"dic=[")
+                for line in self.elements:
+                    # f.write(f"{line['name']}, \nTag: {line['tag']}, Group: {line['group']}, Ref: {line['ref']}\n")
+                    if "listener" in str(line['group']):
+                        f.write(f"{line},\n")
+                f.write(f"]")
         return self.elements
 
 
@@ -162,7 +172,6 @@ def build_tree_recursive_with_groups_as_children(elements, parent_id=None, level
                 group_nodes[group].children.append(node)
             else:
                 tree_nodes.append(node)
-
     for group_node in group_nodes.values():
         tree_nodes.append(group_node)
     return tree_nodes
@@ -188,7 +197,7 @@ def generate_outline(node, depth=0):
             description.replace("'", '&quot;')
         else:
             description = ""
-        description = f'full path:{fullpath}\n\n{description}'
+        description = f'full path:{fullpath}\\n{description}'
         outline = f'{indent}<outline text="{name}" _note="{description}" type="label" _label="{tag}">\n'
     for child_node in node.children:
         outline += generate_outline(child_node, depth + 1)
@@ -197,8 +206,7 @@ def generate_outline(node, depth=0):
 
 
 def export_to_opml(tree_nodes, file_path):
-    opml_header = '''<?xml version="1.0" encoding="UTF-8"?>\n<opml version="2.0">\n<head>\n<title>Tree Export</title>\n
-    </head>\n<body>'''
+    opml_header = '''<?xml version="1.0" encoding="UTF-8"?>\n<opml version="2.0">\n<head>\n\t<title>Tree Export</title>\n</head>\n<body>'''
     opml_footer = '''</body>\n</opml>'''
     outlines = ""
     for node in tree_nodes:
@@ -210,7 +218,7 @@ def export_to_opml(tree_nodes, file_path):
 
 
 def main():
-    filename = "./examples/Live11"
+    filename = "./examples/Live12"
     if filename.endswith(".xml"):
         filename = filename[1:-4]
     with open(filename + '.xml') as file:
@@ -219,7 +227,7 @@ def main():
     lom.import_from_xml_tree(tree)
     lom.get_parent_references()
     lom.get_children_references()
-    dic = lom.print_children_to_file(filename + '.py')
+    dic = lom.print_children_to_file(filename, True)
     tree_nodes = build_tree_recursive_with_groups_as_children(dic)
     export_to_opml(tree_nodes, filename + ".opml")
 
