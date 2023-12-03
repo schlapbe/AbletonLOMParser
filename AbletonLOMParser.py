@@ -2,7 +2,7 @@
 # to export it to OPML and possible other formats
 
 import xml.etree.ElementTree as Element_Tree
-import os
+import os, sys
 
 # from opml import OpmlDocument
 
@@ -43,6 +43,7 @@ class AbletonLOM:
             if description is not None:
                 description = description.replace("\t", '')
                 description = description.replace('"', '&quot;')
+            description = 'None for now'
             path = self.parse_path(name)
             tag = self.root[i].tag
             if path[-1].endswith("listener()"):
@@ -133,24 +134,19 @@ class AbletonLOM:
             new_dic.append(dic)
         return new_dic
 
-    # def build_tree(self, opml):
-    #     self.tree = []
-    #     self.parsed_children = []
-
     def print_children_to_file(self, filename, print_txt=True):
         # new_dic = self.print_dic()
         with open(filename + ".py", 'w') as f:
             f.write(f'dic={str(self.elements)}')
         if print_txt:
             with open(filename + "_testdiic.py", 'w') as f:
-                f.write(f"dic=[")
+                f.write(f"dic = [ \n")
                 for line in self.elements:
                     # f.write(f"{line['name']}, \nTag: {line['tag']}, Group: {line['group']}, Ref: {line['ref']}\n")
-                    if "listener" in str(line['group']):
-                        f.write(f"{line},\n")
-                f.write(f"]")
+                    # if "listener" in str(line['group']):
+                    f.write(f"{line},\n")
+                f.write(f"] \n")
         return self.elements
-
 
 def build_tree_recursive_with_groups_as_children(elements, parent_id=None, level=0, max_depth=6):
     if level > max_depth:
@@ -163,7 +159,6 @@ def build_tree_recursive_with_groups_as_children(elements, parent_id=None, level
             children = build_tree_recursive_with_groups_as_children(elements, parent_id=element["ref"], level=level + 1, max_depth=max_depth)
             if children:
                 node.children.extend(children)
-
             group = element.get("group")
             if group:
                 if group not in group_nodes:
@@ -175,6 +170,14 @@ def build_tree_recursive_with_groups_as_children(elements, parent_id=None, level
     for group_node in group_nodes.values():
         tree_nodes.append(group_node)
     return tree_nodes
+
+
+def output_tree(filename, tree):
+    filename = filename + '-tree.txt'
+    with open(filename, "w") as file:
+        root = tree.getroot()
+        for element in root:
+            file.write(f"{Element_Tree.tostring(element)} \n")
 
 
 def generate_outline(node, depth=0):
@@ -217,16 +220,29 @@ def export_to_opml(tree_nodes, file_path):
     return opml_content
 
 
+def get_xml_file():
+    if len(sys.argv) < 2:
+        return "./examples/Live12"
+    filename = sys.argv[1]
+    if not filename.endswith(".xml"):
+        sys.exit("Not a XML file")
+    if not os.path.isfile(filename):
+        sys.exit("File does not exist")
+    filename = filename.split(".xml")
+    # print(filename[0]))
+    return filename[0]
+
+
 def main():
-    filename = "./examples/Live12"
-    if filename.endswith(".xml"):
-        filename = filename[1:-4]
-    with open(filename + '.xml') as file:
+    filename = get_xml_file()
+    filename_xml = str(filename) + ".xml"
+    with open(filename_xml) as file:
         tree = Element_Tree.parse(file)
+        output_tree(filename, tree)
     lom = AbletonLOM()
     lom.import_from_xml_tree(tree)
-    lom.get_parent_references()
-    lom.get_children_references()
+    # lom.get_parent_references()
+    # lom.get_children_references()
     dic = lom.print_children_to_file(filename, True)
     tree_nodes = build_tree_recursive_with_groups_as_children(dic)
     export_to_opml(tree_nodes, filename + ".opml")
