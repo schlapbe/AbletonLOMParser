@@ -1,3 +1,5 @@
+<!-- this is a shortened xml file of the generated output of the apiDocMaker for testing purposes -->
+
 <?xml-stylesheet type="text/css" href="Live.css"?>
 <Live>
 Live API version 11.3.13
@@ -7,6 +9,8 @@ Live API version 11.3.13
             </Doc>
 
 <Doc>	This is unofficial documentation. Please do not contact Ableton with questions or problems relating to the use of this documentation.</Doc>
+
+<Module>Live<Description>Module</Description></Module>
 
 <Module>Live.Track<Description>Module</Description></Module>
 
@@ -18,9 +22,29 @@ Live API version 11.3.13
 
 <Doc>	add_arm_listener( (Track)arg1, (object)arg2) -&amp;gt; None : Add a listener function or method, which will be called as soon as the property "arm" has changed. C++ signature :  void add_arm_listener(TTrackPyHandle,boost::python::api::object)</Doc>
 
+<Built-In>Live.Track.Track.add_arrangement_clips_listener()<Description>Built-In</Description></Built-In>
+
+<Doc>	add_arrangement_clips_listener( (Track)arg1, (object)arg2) -&amp;gt; None : Add a listener function or method, which will be called as soon as the property "arrangement_clips" has changed. C++ signature :  void add_arrangement_clips_listener(TTrackPyHandle,boost::python::api::object)</Doc>
+
+<Built-In>Live.Track.Track.add_available_input_routing_channels_listener()<Description>Built-In</Description></Built-In>
+
+<Doc>	add_available_input_routing_channels_listener( (Track)arg1, (object)arg2) -&amp;gt; None : Add a listener function or method, which will be called as soon as the property "available_input_routing_channels" has changed. C++ signature :  void add_available_input_routing_channels_listener(TTrackPyHandle,boost::python::api::object)</Doc>
+
 <Value>Live.Track.Track.arm_has_listener()<Description>Value</Description></Value>
 
 <Doc>	arm_has_listener( (Track)arg1, (object)arg2) -&amp;gt; bool : Returns true, if the given listener function or method is connected to the property "arm". C++ signature :  bool arm_has_listener(TTrackPyHandle,boost::python::api::object)</Doc>
+
+<Value>Live.Track.Track.arrangement_clips_has_listener()<Description>Value</Description></Value>
+
+<Doc>	arrangement_clips_has_listener( (Track)arg1, (object)arg2) -&amp;gt; bool : Returns true, if the given listener function or method is connected to the property "arrangement_clips". C++ signature :  bool arrangement_clips_has_listener(TTrackPyHandle,boost::python::api::object)</Doc>
+
+<Value>Live.Track.Track.available_input_routing_channels_has_listener()<Description>Value</Description></Value>
+
+<Doc>	available_input_routing_channels_has_listener( (Track)arg1, (object)arg2) -&amp;gt; bool : Returns true, if the given listener function or method is connected to the property "available_input_routing_channels". C++ signature :  bool available_input_routing_channels_has_listener(TTrackPyHandle,boost::python::api::object)</Doc>
+
+<Value>Live.Track.Track.available_input_routing_channels<Description>Value</Description></Value>
+
+<Doc>	Return a list of source channels for input routing.</Doc>
 
 <Value>Live.Track.Track.get_data()<Description>Value</Description></Value>
 
@@ -37,6 +61,14 @@ Live API version 11.3.13
 <Built-In>Live.Track.Track.remove_arm_listener()<Description>Built-In</Description></Built-In>
 
 <Doc>	remove_arm_listener( (Track)arg1, (object)arg2) -&amp;gt; None : Remove a previously set listener function or method from property "arm". C++ signature :  void remove_arm_listener(TTrackPyHandle,boost::python::api::object)</Doc>
+
+<Built-In>Live.Track.Track.remove_arrangement_clips_listener()<Description>Built-In</Description></Built-In>
+
+<Doc>	remove_arrangement_clips_listener( (Track)arg1, (object)arg2) -&amp;gt; None : Remove a previously set listener function or method from property "arrangement_clips". C++ signature :  void remove_arrangement_clips_listener(TTrackPyHandle,boost::python::api::object)</Doc>
+
+<Built-In>Live.Track.Track.remove_available_input_routing_channels_listener()<Description>Built-In</Description></Built-In>
+
+<Doc>	remove_available_input_routing_channels_listener( (Track)arg1, (object)arg2) -&amp;gt; None : Remove a previously set listener function or method from property "available_input_routing_channels". C++ signature :  void remove_available_input_routing_channels_listener(TTrackPyHandle,boost::python::api::object)</Doc>
 
 
 </Live>

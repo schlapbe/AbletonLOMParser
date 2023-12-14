@@ -1,3 +1,5 @@
+<!-- this is a shortened xml file of the generated output of the apiDocMaker for testing purposes -->
+
 <?xml-stylesheet type="text/css" href="Live.css"?>
 <Live>
 Live API version 11.3.13
@@ -7,6 +9,8 @@ Live API version 11.3.13
             </Doc>
 
 <Doc>	This is unofficial documentation. Please do not contact Ableton with questions or problems relating to the use of this documentation.</Doc>
+
+<Module>Live<Description>Module</Description></Module>
 
 <Module>Live.Track<Description>Module</Description></Module>
 
