@@ -1,6 +1,6 @@
 import pytest
 from xml.etree.ElementTree import Element, ElementTree
-from project import AbletonLOM, clean_description_for_X_Mind  # replace 'your_module' with the actual module name
+from abletonLOMParser import AbletonLOM, clean_description_for_X_Mind  # replace 'your_module' with the actual module name
 
 
 def main():
