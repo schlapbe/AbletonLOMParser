@@ -53,6 +53,13 @@ data: Stores information about the LOM element associated with this node.
 children: A list of child nodes, representing the elements nested beneath the current element.
 The TreeNode class is used to build a hierarchical representation of the LOM, where each node corresponds to an element in the LOM XML.
 
+### 2b) grouping listener() Methods
+many objects in the LOM have listener methods, which will be called, if this objects changes. Each listener has three methods:
+add_listener()
+remove_listener()
+_has_listener()
+
+To improve the overview, I wrote a function summarize_listener_methods() which "collects" those three methods and sort them by the actual listener name.
 
 ### 3) write the opml file for XMind
 I build the desired structure in XMind with a very few elements manually, using XMind specific features like:
@@ -66,18 +73,20 @@ Then I exported it as a OPML file and re-engineered the outline formatting to ma
 ## Testing (test_AbletonLOM.py)
 I did the testing procedures after everything worked. Given that the xml file input is static, because it is actually always the same file, there was no need to test to code for unexpected input.
 
-However, as the search feature in XMind is very slow, because of the amount of text, 
+But as the requirements for this projects are demanding some unit tests, I wrote tests for the parsing of the LOM paths, the parsing of listener methods and the cleaning of the description for XMind
 
 ## Outcome, plans and summary
 
-It works perfectly for my use cases. Now it is a real joy to look for certain aspects. 
-I have two plans for the future:
+It works perfectly for my use case. Now it is a real joy to look for certain aspects. 
+I have one plan for the future:
 
-1) I want to make it accessible for the ableton community. I think the best way is to use my output side of the program to build a folder structure for a static site generator like hugo to make it fast and accessible for the web.
+I want to make it accessible for the ableton community. I think the best way is to use my output side of the program to build a folder structure for a 
+   static site generator like hugo to make it fast and accessible for the web.
 
-2) porting the LiveAPI_MakeDOC script to Python3:
-Unfortunately the underlying source is not working in the latest updates of Ableton, because they switched to Python 3. The script latest commit is dated to 2011 and has been archived by its owner.
-I'll try to make it work with the latest Ableton version to make sure the latest added features are availble.
+Update: while programming this, a friend of mine updated the original LIVEAPI Make doc script to Python 3, and now it can run on Ableton 11.3. as well as on the 
+Live 12 beta, which is not even released officially:
+[https://github.com/Enteleform/LiveAPI_MakeDoc](https://github.com/Enteleform/LiveAPI_MakeDoc)
+
 
 Thank you David Malan and everybody else at CS50 at Harvard, it has been a great journey to dive into Python programming. The results will be very beneficial for my workflow!
 

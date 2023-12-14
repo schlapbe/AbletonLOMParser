@@ -11,12 +11,6 @@ group_tags = ["Method", "Value", "Property", "Listener Method", "Listener"]
 group_names = ["Methods", "Values", "Properties", "Listener Methods", "Listener"]
 
 
-class TreeNode:
-    def __init__(self, data):
-        self.data = data
-        self.children = []
-
-
 class AbletonLOM:
     def __init__(self):
         self.is_imported_from_xml = False
@@ -40,6 +34,7 @@ class AbletonLOM:
         for i in range(0, len(self.root)):
             name = self.root[i].text
             description = self.get_doc(self.root, i)
+            # description = ''
             if description is not None:
                 description = description.replace("\t", '')
                 description = description.replace('"', '&quot;')
@@ -47,6 +42,8 @@ class AbletonLOM:
             tag = self.root[i].tag
             if path[-1].endswith("listener()"):
                 tag = "Listener Method"
+            # elif path[-1].endswith("()"):
+            #     tag = "Method"
             if tag in group_tags:
                 group = tag
             else:
@@ -75,7 +72,6 @@ class AbletonLOM:
     # returns listener name
     @staticmethod
     def get_listener_name(listener_name):
-        patterns = ['add_', '_listener()', '_has', 'remove_']
         if listener_name.startswith("add_") or listener_name.startswith("remove_"):
             stripped_name = listener_name.split("_")
             pure_listener_name = "_".join(stripped_name[1:-1])
@@ -91,6 +87,11 @@ class AbletonLOM:
             return True
         return False
 
+    # each listener has three methods:
+    # add_name_listener()
+    # remove_name_listener()
+    # name_has_listener()
+    # inspects the element and if it is a listener it creates a new element refers those three elements to it
     def summarize_listener_methods(self, dic):
         listener_methods = None
         new_refs = len(dic) - 1
@@ -138,6 +139,18 @@ class AbletonLOM:
             dic.append(new_listener)
         return dic
 
+    def delete_listener_methods(self):
+        for i, element in enumerate(self.elements.copy()):
+            if element["group"]:
+                if "Listener Method" in element["group"]:
+                    self.elements.remove(element)
+
+    def delete_internal_functions(self):
+        for element in self.elements.copy():
+            if element["path"][-1].startswith("__"):
+                # print(f"Deleting Method: {element['path'][-1]}")
+                self.elements.remove(element)
+
     @staticmethod
     def get_doc(root, pos):
         try:
@@ -176,30 +189,6 @@ class AbletonLOM:
                 if child['ref_parent'] == ref:
                     element['children'].append(child['ref'])
 
-    def get_classes(self):
-        return list(filter(lambda s_class: s_class['tag'] == 'Class', self.elements))
-
-    def get_class_with_methods(self, class_dic):
-        ref = class_dic['ref']
-        return list(filter(lambda elements: elements['ref_parent'] == ref, self.elements))
-
-    def get_children(self, parent_dic):
-        children_ref = parent_dic['children']
-        children_list = []
-        for i in range(0, len(children_ref)):
-            children_list.append(self.elements[children_ref[i]])
-        return children_list
-
-    def rec_get_all_children(self, parent_id, pr_children, level=0):
-        children = self.elements[parent_id]['children']
-        if children is []:
-            return children
-        else:
-            for child in children:
-                if child['ref'] not in self.parsed_children:
-                    self.parsed_children.append(child['ref'])
-            pass
-
     def print_dic(self):
         new_dic = []
         for element in self.elements:
@@ -207,12 +196,18 @@ class AbletonLOM:
             new_dic.append(dic)
         return new_dic
 
-    def print_children_to_file(self, filename, print_txt=True):
+    def print_children_to_file(self, filename):
         with open(filename + "_dic.py", 'w') as f:
             f.write(f"dic = [ \n")
             for line in self.elements:
                 f.write(f"{line},\n")
             f.write(f"] \n")
+
+
+class TreeNode:
+    def __init__(self, data):
+        self.data = data
+        self.children = []
 
 
 def build_tree_recursive_with_groups_as_children(elements, parent_id=None, level=0):
@@ -245,21 +240,21 @@ def output_tree(filename, tree):
             file.write(f"{Element_Tree.tostring(element)} \n")
 
 
+# deletes some unnecessary clutter and replaces new line tags with &#10; etc.
+# to make it look nice in XMind
 def clean_description_for_X_Mind(description, full_path):
-    # convert \ns
     if description:
         description = description.replace('"', '&quot;')
         description = description.replace("'", '&quot;')
-        # description = description.replace("-&gt;", '-&gt: &#10;')
         description = description.replace('\n', ' &#10;&#10;')
         description = description.replace('C++ signature :', ' &#10;&#10;C++ signature:')
         description = description.replace('void', 'void &#10;')
     return f"full path:&#10;{full_path} &#10; &#10; {description}"
 
 
-def generate_outline(node, depth=0):
+# a recursive function which converts all children elements into an opml outline
+def generate_outline(node, depth=0, label=False):
     indent = '    ' * depth
-    # fullpath = node.data["name"]
     tag = node.data['tag']
     if "Group" in node.data['name']:
         # description = None
@@ -270,25 +265,27 @@ def generate_outline(node, depth=0):
                 break
         outline = f'{indent}<outline text="{name}">\n'
     else:
-        # name = node.data['name']
-        fullpath = "".join(node.data['path'])
+        fullpath = ".".join(node.data['path'])
         description = clean_description_for_X_Mind(node.data["description"], fullpath)
         lastname = node.data["path"][-1]
         if node.data['group'] == 'Listener':
             lastname = node.data['name']
-        outline = f'{indent}<outline text="{lastname}" _note="{description}" type="label" _label="{tag}">\n'
+        if label:
+            outline = f'{indent}<outline text="{lastname}" _note="{description}" type="label" _label="{tag}">\n'
+        else:
+            outline = f'{indent}<outline text="{lastname}" _note="{description}">\n'
     for child_node in node.children:
-        outline += generate_outline(child_node, depth + 1)
+        outline += generate_outline(child_node, depth + 1, label)
     outline += f'{indent}</outline>\n'
     return outline
 
 
-def export_to_opml(tree_nodes, file_path):
+def export_to_opml(tree_nodes, file_path, label=False):
     opml_header = '<?xml version="1.0" encoding="UTF-8"?>\n<opml version="2.0">\n<head>\n\t<title>Tree Export</title>\n</head>\n<body>'
     opml_footer = '</body>\n</opml>'
     outlines = ""
     for node in tree_nodes:
-        outlines += generate_outline(node)
+        outlines += generate_outline(node, 0, label)
     opml_content = opml_header + outlines + opml_footer
     with open(file_path, "w") as f:
         f.write(opml_content)
@@ -309,6 +306,14 @@ def get_xml_file():
 
 
 def main():
+    for arg in sys.argv[1:]:
+        if arg in ["--option", "--options", "--help", "-?", "--args"]:
+            print("possible options:"
+                  "\t\n--treetxt : generates a text file with the xmltree"
+                  "\t\n--internal : does not remove the internal __functions"
+                  "\t\n--listener :  does not remove the original listener methods"
+                  "\t\n--dictofile : generates .py file with the whole generated dictionary")
+            exit()
     filename = get_xml_file()
     filename_xml = str(filename) + ".xml"
     with open(filename_xml) as file:
@@ -317,12 +322,31 @@ def main():
             output_tree(filename, tree)
     lom = AbletonLOM()
     lom.import_from_xml_tree(tree)
+    print(f"{filename}.xml imported")
     lom.get_parent_references()
+    print("parent relations referenced")
     lom.get_children_references()
+    print("children relations referenced")
+    if "--internal" in sys.argv:
+        print("--internal option, internal functions not removed")
+    else:
+        lom.delete_internal_functions()
+        print("internal functions removed")
+    if "--listener" in sys.argv:
+        print("--listener option, listener methods not removed")
+        pass
+    else:
+        lom.delete_listener_methods()
+        print("listener methods removed")
     tree_nodes = build_tree_recursive_with_groups_as_children(lom.elements)
     if "--dictofile" in sys.argv:
-        lom.print_children_to_file(filename, True)
-    export_to_opml(tree_nodes, filename + ".opml")
+        lom.print_children_to_file(filename)
+    if "--label" in sys.argv:
+        print("generate outlines with label tag")
+        export_to_opml(tree_nodes, filename + ".opml", True)
+    else:
+        export_to_opml(tree_nodes, filename + ".opml", False)
+    print(f'{filename}.opml for xmind generated')
 
 
 if __name__ == "__main__":
