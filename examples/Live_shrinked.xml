@@ -70,5 +70,4 @@ Live API version 11.3.13
 
 <Doc>	remove_available_input_routing_channels_listener( (Track)arg1, (object)arg2) -&amp;gt; None : Remove a previously set listener function or method from property "available_input_routing_channels". C++ signature :  void remove_available_input_routing_channels_listener(TTrackPyHandle,boost::python::api::object)</Doc>
 
-
 </Live>
