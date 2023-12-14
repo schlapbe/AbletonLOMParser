@@ -1,11 +1,14 @@
 # xml Parser for Ableton's Live Object Model
 # to export it to OPML and possible other formats
+# written by Sebastian "Schlapbe" Flach
+# in 2023
+# Version 1.0
 
 import xml.etree.ElementTree as Element_Tree
 import os
 import sys
 
-# from opml import OpmlDocument
+
 
 group_tags = ["Method", "Value", "Property", "Listener Method", "Listener"]
 group_names = ["Methods", "Values", "Properties", "Listener Methods", "Listener"]
