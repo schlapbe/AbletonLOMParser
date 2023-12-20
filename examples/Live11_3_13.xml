@@ -14,7 +14,7 @@ Live API version 11.3.13
 
 <Built-In>Live.Application.combine_apcs()<Description>Built-In</Description></Built-In>
 
-<Doc>	combine_apcs() -&amp;gt; bool : Returns true if multiple APCs should be combined. C++ signature :  bool combine_apcs()</Doc>
+<Doc>   combine_apcs() -&amp;gt; bool : Returns true if multiple APCs should be combined. C++ signature :  bool combine_apcs()</Doc>
 
 <Built-In>Live.Application.encrypt_challenge()<Description>Built-In</Description></Built-In>
 

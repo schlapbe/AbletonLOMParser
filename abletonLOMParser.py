@@ -10,8 +10,8 @@ import sys
 
 
 
-group_tags = ["Method", "Value", "Property", "Listener Method", "Listener"]
-group_names = ["Methods", "Values", "Properties", "Listener Methods", "Listener"]
+group_tags = ["Method", "Value", "Property", "Listener Method", "Listener", "Built-In"]
+group_names = ["Methods", "Values", "Properties", "Listener Methods", "Listener", "Methods"]
 
 
 class AbletonLOM:
@@ -45,8 +45,8 @@ class AbletonLOM:
             tag = self.root[i].tag
             if path[-1].endswith("listener()"):
                 tag = "Listener Method"
-            # elif path[-1].endswith("()"):
-            #     tag = "Method"
+            if tag == "Built-In":
+                tag = "Method"
             if tag in group_tags:
                 group = tag
             else:
@@ -176,13 +176,15 @@ class AbletonLOM:
     def get_parent_references(self):
         for element in self.elements:
             if len(element['path']) > 1:
+                # if element['path'][0].startswith("\t"):
+                #     continue
                 try:
                     parent_path = element['path'][0:-1]
                     res = list(filter(lambda search: search['path'] == parent_path, self.elements))[0]
                     if res is not None:
                         element["ref_parent"] = res['ref']
                 except Exception as e:
-                    print(f'Error: {e}, element: {element}')
+                    print(f'Error: {e}, path: {element["path"]}, parent_path:{parent_path}\nelement: {element}\n')
 
     # this method refers all children in the paths to be able to build a tree structure later
     def get_children_references(self):
@@ -255,6 +257,17 @@ def clean_description_for_X_Mind(description, full_path):
     return f"full path:&#10;{full_path} &#10; &#10; {description}"
 
 
+def clean_description_for_html(description, full_path):
+    if description:
+        description = description.replace('"', '&quot;')
+        description = description.replace("'", '&quot;')
+        description = description.replace('\n', ' <br>')
+        description = description.replace('&#10;', ' <br>')
+        description = description.replace('C++ signature :', ' <br>;C++ signature:')
+        description = description.replace('void', 'void <br>;')
+    return f"Description: {description}<br><br>full path:<br>{full_path}"
+
+
 # a recursive function which converts all children elements into an opml outline
 def generate_outline(node, depth=0, label=False):
     indent = '    ' * depth
@@ -283,6 +296,46 @@ def generate_outline(node, depth=0, label=False):
     return outline
 
 
+def generate_html_list(node, depth=0):
+    indent = '  ' * depth
+    if "Group" in node.data['name']:
+        name = node.data['tag']
+        for i in range(0, len(group_tags)):
+            if name == group_tags[i]:
+                name = group_names[i]
+                break
+        if node.data['group'] in group_tags:
+            outline = f'{indent}  <li class=\'{node.data["tag"].lower()}\'>{name}\n'
+        else:
+            outline = f'{indent}  <li>{name}\n'
+
+        if node.children:
+            outline += f'{indent}    <ul>\n'
+            for child_node in node.children:
+                outline += generate_html_list(child_node, depth + 1)
+            outline += f'{indent}    </ul>\n'
+        outline += f'{indent}  </li>\n'
+    else:
+        fullpath = ".".join(node.data['path'])
+        if node.data['description']:
+            description = clean_description_for_html(node.data['description'], fullpath)
+        else:
+            description = None
+        lastname = node.data["path"][-1]
+        if node.data['group'] == 'Listener':
+            lastname = node.data['name']
+            outline = f'{indent}  <li class=\'listener\'>{lastname}\n'
+        else:
+            outline = f'{indent}  <li><strong>{lastname}</strong> <small><i>{node.data["tag"]}</i></small>\n'
+        outline += f'{indent}    <ul>\n'
+        if description:
+            outline += f'{indent}    <li class="description">{description}</li>\n'
+        for child_node in node.children:
+            outline += generate_html_list(child_node, depth + 1)
+        outline += f'{indent}    </ul>\n'
+        outline += f'{indent}  </li>\n'
+    return outline
+
 def export_to_opml(tree_nodes, file_path, label=False):
     opml_header = '<?xml version="1.0" encoding="UTF-8"?>\n<opml version="2.0">\n<head>\n\t<title>Tree Export</title>\n</head>\n<body>'
     opml_footer = '</body>\n</opml>'
@@ -293,6 +346,53 @@ def export_to_opml(tree_nodes, file_path, label=False):
     with open(file_path, "w") as f:
         f.write(opml_content)
     return opml_content
+
+
+def export_to_html(tree_nodes, file_path):
+    html_header = '''
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>ABLETON LOM</title>
+      <link rel="stylesheet" href="./style.css">
+    </head>
+    <body>
+    <!-- partial:index.partial.html -->
+    <h1>ABLTON LOM</h1>
+    <input type="text" id="treeSearch" placeholder="Search in the tree..." style="width: 200px; margin-bottom: 10px;">
+    <input type="checkbox" id="excludeDescription">
+      Exclude descriptions
+    </label>
+    <button id="searchButton">Search</button>
+    <br>
+    <br>
+    <input type="text" id="treeFilter" placeholder="Filter the tree..." style="width: 200px; margin-bottom: 10px;">
+    <button id="filterButton">Filter</button>
+    <br><br>
+    <button id="collapseAll">Collapse All</button>
+    <button id="expandAll">Expand All</button>
+
+    '''
+
+    html_footer = '''    
+    
+    <!-- partial -->
+        <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script><script  src="./script.js"></script>
+        </body>
+    </html>
+
+    '''
+
+    li_list = ''
+    for node in tree_nodes:
+        li_list += generate_html_list(node, 0)
+    html_content = html_header + li_list + html_footer
+    with open(file_path, "w") as f:
+        f.write(html_content)
+    return html_content
+
 
 
 def get_xml_file():
@@ -313,6 +413,8 @@ def main():
         if arg in ["--option", "--options", "--help", "-?", "--args"]:
             print("possible options:"
                   "\t\n--treetxt : generates a text file with the xmltree"
+                  "\t\n--label : no lables exported"
+                  "\t\n--html : generates html file"
                   "\t\n--internal : does not remove the internal __functions"
                   "\t\n--listener :  does not remove the original listener methods"
                   "\t\n--dictofile : generates .py file with the whole generated dictionary")
@@ -344,11 +446,17 @@ def main():
     tree_nodes = build_tree_recursive_with_groups_as_children(lom.elements)
     if "--dictofile" in sys.argv:
         lom.print_children_to_file(filename)
+
+    if "--html" in sys.argv:
+        export_to_html(tree_nodes, filename + ".html")
+        print("--html file generated")
+
     if "--label" in sys.argv:
         print("generate outlines with label tag")
         export_to_opml(tree_nodes, filename + ".opml", True)
     else:
         export_to_opml(tree_nodes, filename + ".opml", False)
+
     print(f'{filename}.opml for xmind generated')
 
 

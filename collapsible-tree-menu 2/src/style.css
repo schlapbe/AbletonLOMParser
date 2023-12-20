@@ -1,0 +1,61 @@
+body {
+  padding: 50px 100px;
+  font-family: sans-serif;
+}
+
+ul {
+  margin: 0;
+  padding-left: 25px;
+  line-height: 2em;
+  list-style: none;
+  background-color: #fff;
+}
+ul li {
+  position: relative;
+}
+ul li:before {
+  position: absolute;
+  top: 0;
+  left: -15px;
+  display: block;
+  width: 15px;
+  height: 1em;
+  content: "";
+  border-bottom: 1px dotted #666;
+  border-left: 1px dotted #666;
+}
+/* hide the vertical line on the first item */
+ul.tree > li:first-child:before {
+  border-left: none;
+}
+ul li:after {
+  position: absolute;
+  top: 1.1em;
+  bottom: 1px;
+  left: -15px;
+  display: block;
+  content: "";
+  border-left: 1px dotted #666;
+}
+
+/* hide the lines on the last item */
+ul li:last-child:after {
+  display: none;
+}
+
+/* inserted via JS  */
+.js-toggle-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  width: 14px;
+  margin-right: 2px;
+  margin-left: -23px;
+  line-height: 14px;
+  text-align: center;
+  font-style: normal;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid #666;
+  border-radius: 2px;
+}

@@ -1,0 +1,51 @@
+/* Base styles for the dark theme */
+body {
+  background-color: #1a1a2e; /* Dark background */
+  color: #e0e1dd; /* Light text */
+  font-family: sans-serif;
+  padding: 50px 100px;
+}
+
+ul.tree {
+  padding-left: 0;
+  line-height: 1.5em;
+  list-style: none;
+}
+
+/* General styles for li elements */
+ul.tree li {
+  position: relative;
+  padding-left: 10px;
+  border-left: 1px solid #0f3460; /* Blue lines to match the mindmap */
+}
+
+/* Special group styles */
+ul.tree li.method {
+  color: #4aB7F3; /* Specific color for methods */
+}
+
+ul.tree li.value {
+  color: #21e6c1; /* Specific color for values */
+}
+
+ul.tree li.listener {
+  color: #ffd60a; /* Specific color for listeners */
+}
+
+
+/* inserted via JS  */
+.js-toggle-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  width: 14px;
+  margin-right: 2px;
+  margin-left: -23px;
+  line-height: 14px;
+  text-align: center;
+  font-style: normal;
+  cursor: pointer;
+  background-color: ##1a1a2e;
+  border: 1px solid #666;
+  border-radius: 2px;
+}
